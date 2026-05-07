@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Credit</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Pretendard', sans-serif;
+    }
+
+    body {
+      background-color: #000;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* ── 배경 레이어 ── */
+    .main-bg {
+      position: fixed;
+      inset: 0;
+      background-image: url('assets/main.png');
+      background-size: cover;
+      background-position: center;
+      filter: blur(40px) brightness(0.5);
+      transform: scale(1.05);
+      z-index: 1;
+    }
+
+    .main-fg {
+      position: fixed;
+      inset: 0;
+      background-image: url('assets/main.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      z-index: 1;
+    }
+
+    /* ── HUD + GO 버튼 ── */
+    .btn-group {
+      position: fixed;
+      right: 1.5%;
+      bottom: 3%;
+      width: 26%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      z-index: 20;
+    }
+
+    .hud {
+      color: #ccff00;
+      font-family: monospace;
+      font-size: 11px;
+      opacity: 0.8;
+      line-height: 1.6;
+      pointer-events: none;
+      white-space: pre;
+      text-align: right;
+    }
+
+    .go-btn {
+      width: 100%;
+      cursor: pointer;
+      transition: transform 0.1s;
+      user-select: none;
+    }
+
+    .go-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* ── 동의 카운터 ── */
+    .agree-counter {
+      position: fixed;
+      bottom: 3%;
+      left: 3%;
+      font-family: monospace;
+      font-size: 14px;
+      color: #ccff00;
+      opacity: 0.9;
+      line-height: 1.8;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    @keyframes counterBlink {
+      0%   { opacity: 0.9; }
+      40%  { opacity: 0.3; }
+      100% { opacity: 0.9; }
+    }
+
+    .agree-counter-num.blink {
+      animation: counterBlink 0.2s ease;
+    }
+
+    /* ── 오버레이 ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .overlay.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* ── 팝업 박스 공통 ── */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 50%;
+      height: 75%;
+      background: #ffffff;
+      border-radius: 4px;
+      padding: 40px;
+      flex-direction: column;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    /* 박스 01 */
+    @keyframes popIn1 {
+      from { opacity: 0; transform: translate(calc(-50% - 120px), calc(-50% - 80px)) rotate(-3deg) scale(0.95); }
+      to   { opacity: 1; transform: translate(calc(-50% - 120px), calc(-50% - 80px)) rotate(-3deg) scale(1); }
+    }
+
+    .modal-1 {
+      transform: translate(calc(-50% - 120px), calc(-50% - 80px)) rotate(-3deg);
+      z-index: 101;
+      box-shadow: 0 0 20px #ccff00, 0 0 40px #ccff00;
+    }
+
+    .modal-1.active { animation: popIn1 0.3s ease; }
+
+    /* 박스 02 */
+    @keyframes popIn2 {
+      from { opacity: 0; transform: translate(calc(-50% + 140px), calc(-50% - 40px)) rotate(2deg) scale(0.95); }
+      to   { opacity: 1; transform: translate(calc(-50% + 140px), calc(-50% - 40px)) rotate(2deg) scale(1); }
+    }
+
+    .modal-2 {
+      transform: translate(calc(-50% + 140px), calc(-50% - 40px)) rotate(2deg);
+      z-index: 102;
+      box-shadow: 0 0 25px #ccff00, 0 0 50px #ccff00;
+    }
+
+    .modal-2.active { animation: popIn2 0.3s ease; }
+
+    /* 박스 03 */
+    @keyframes popIn3 {
+      from { opacity: 0; transform: translate(calc(-50% + 60px), calc(-50% + 110px)) rotate(-1.5deg) scale(0.95); }
+      to   { opacity: 1; transform: translate(calc(-50% + 60px), calc(-50% + 110px)) rotate(-1.5deg) scale(1); }
+    }
+
+    .modal-3 {
+      transform: translate(calc(-50% + 60px), calc(-50% + 110px)) rotate(-1.5deg);
+      z-index: 103;
+      box-shadow: 0 0 30px #ccff00, 0 0 60px #ccff00, 0 0 90px #ccff00;
+    }
+
+    .modal-3.active { animation: popIn3 0.3s ease; }
+
+    /* 헤더 */
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+
+    .modal-close {
+      font-size: 18px;
+      color: #000;
+      cursor: pointer;
+      background: none;
+      border: none;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .modal-close:hover { color: #333; }
+
+    .modal-id {
+      font-family: monospace;
+      font-size: 11px;
+      color: #000;
+    }
+
+    /* 본문 */
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      font-size: 14px;
+      color: #000;
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
+    /* 동의하십니까 */
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    .modal-agree {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #000;
+      pointer-events: none;
+    }
+
+    .modal-agree .cursor {
+      animation: blink 1s step-end infinite;
+    }
+
+    /* ── 알림 토스트 ── */
+
+    /* wrapper: 전체 뷰포트 너비, top 50% 기준으로 translateY(-50%) = 수직 중앙 */
+    .toast-wrapper {
+      position: fixed;
+      left: 0;
+      top: 50%;
+      width: 100vw;
+      transform: translateY(-50%);
+      transition: transform 0.3s ease;
+      pointer-events: none;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 일반 알림 */
+    .toast {
+      width: 60%;
+      padding: 16px 32px;
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid #ccff00;
+      box-shadow: 0 0 20px rgba(204, 255, 0, 0.4);
+      font-family: monospace;
+      font-size: 14px;
+      color: #ccff00;
+      text-align: center;
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* 클라이맥스 알림 */
+    .toast-final {
+      width: 75%;
+      padding: 36px 48px;
+      background: rgba(0, 0, 0, 0.9);
+      border: 2px solid #ccff00;
+      box-shadow: 0 0 50px rgba(204, 255, 0, 0.9), 0 0 100px rgba(204, 255, 0, 0.5), 0 0 150px rgba(204, 255, 0, 0.25);
+      font-family: monospace;
+      font-size: 20px;
+      color: #ccff00;
+      text-align: center;
+      opacity: 0;
+      transform: scale(0.7);
+      transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+    }
+
+    .toast-final.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    @keyframes toastShake {
+      0%   { transform: translateX(0); }
+      15%  { transform: translateX(-6px); }
+      30%  { transform: translateX(6px); }
+      45%  { transform: translateX(-4px); }
+      60%  { transform: translateX(4px); }
+      75%  { transform: translateX(-2px); }
+      90%  { transform: translateX(2px); }
+      100% { transform: translateX(0); }
+    }
+
+    .toast-final.shake {
+      animation: toastShake 0.15s ease;
+    }
+
+    /* 클라이맥스 오버레이 */
+    .climax-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      pointer-events: none;
+      animation: fadeIn 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-bg"></div>
+  <div class="main-fg"></div>
+
+  <!-- 동의 카운터 -->
+  <div class="agree-counter">
+    <div>AGREEMENTS LOGGED</div>
+    <div>━━━━━━━━━━━━━</div>
+    <div class="agree-counter-num" id="counter-num">[ 0000 ]</div>
+  </div>
+
+  <!-- HUD + GO 버튼 -->
+  <div class="btn-group">
+    <div class="hud" id="hud"></div>
+    <img
+      class="go-btn"
+      src="assets/go.png"
+      alt="GO"
+      onclick="openModals()"
+    >
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+
+  <!-- 팝업 박스들 -->
+  <div class="modal modal-1" id="modal-1">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal('modal-1')">✕</button>
+      <span class="modal-id">01 / 03</span>
+    </div>
+    <div class="modal-body" id="body-1"></div>
+    <div class="modal-agree">동의하십니까?<span class="cursor">_</span></div>
+  </div>
+
+  <div class="modal modal-2" id="modal-2">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal('modal-2')">✕</button>
+      <span class="modal-id">02 / 03</span>
+    </div>
+    <div class="modal-body" id="body-2"></div>
+    <div class="modal-agree">동의하십니까?<span class="cursor">_</span></div>
+  </div>
+
+  <div class="modal modal-3" id="modal-3">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal('modal-3')">✕</button>
+      <span class="modal-id">03 / 03</span>
+    </div>
+    <div class="modal-body" id="body-3"></div>
+    <div class="modal-agree">동의하십니까?<span class="cursor">_</span></div>
+  </div>
+
+
+  <script>
+    /* ── HUD ── */
+    const hud = document.getElementById('hud');
+    let lat = 37.5547213;
+    let lon = 126.9706482;
+    let frame = 4829;
+
+    function rand() { return Math.random() * 0.0002 - 0.0001; }
+    function pad(n) { return String(n).padStart(5, '0'); }
+
+    setInterval(() => {
+      lat += rand();
+      lon += rand();
+      frame += 1;
+      hud.textContent = `LAT ${lat.toFixed(7)}\nLON ${lon.toFixed(7)}\nFRAME ${pad(frame)}`;
+    }, 100);
+
+    /* ── 약관 텍스트 ── */
+    const terms = `SOCIAL CREDIT 서비스 이용약관
+
+본 약관은 사용자가 본 페이지에 진입한 시점부터 효력을 발생합니다.
+
+제1조 (총칙)
+본 약관은 'SOCIAL CREDIT'(이하 '서비스')과 이용자 간의 권리·의무 및 책임사항을 규정함을 목적으로 한다. 본 페이지에 접속한 모든 자는 본 약관의 전 조항에 동의한 것으로 본다.
+
+제2조 (개인정보의 수집 및 보관)
+① 서비스는 이용자의 인적사항, 생체정보(얼굴, 음성, 홍채, 지문, 보행 패턴, 심박 변이도), 행동 로그, 위치 데이터, 통신 기록, 검색 이력, 결제 내역, 의료 정보 일체를 수집한다.
+② 수집된 정보는 이용자의 사망 시점으로부터 100년간 보관되며, 별도 통지 없이 직계가족 및 3차 인맥 범위까지 제공될 수 있다.
+③ 이용자는 본 항에 따른 수집 및 보관에 대해 어떠한 이의도 제기할 수 없다.
+
+제3조 (행동 추적)
+① 본 서비스는 이용자가 본 페이지 외부에서 수행하는 모든 디지털 활동을 분석 대상에 포함한다.
+② 이용자의 마이크 및 카메라는 이용자가 인지하지 못하는 시간대에 활성화될 수 있으며, 수집된 데이터는 음성 인식 모델 및 표정 분석 모델의 학습에 사용된다.
+③ 본 항의 활성화 사실은 이용자에게 통지되지 아니한다.
+
+제4조 (사회적 신용 점수)
+① 서비스는 이용자의 모든 활동을 정량화하여 0점부터 1000점까지의 사회적 신용 점수로 환산한다.
+② 점수 산정 기준 및 알고리즘은 영업기밀에 해당하며 비공개로 한다.
+③ 점수 350점 이하 이용자는 본 서비스 및 제휴 서비스(금융, 의료, 교육, 통신, 운송 등)의 이용이 영구 제한될 수 있다.
+④ 점수에 대한 이의제기는 접수되지 아니한다.
+
+제5조 (제3자 제공 및 영구 양도)
+① 이용자의 데이터는 광고 파트너사, 정부 기관, 학술 연구기관, 보험사, 신용평가기관, 채용 대행사, 그리고 본 서비스가 제휴 관계에 있는 모든 법인에 제공된다.
+② 제공 사실은 이용자에게 통지되지 아니하며, 이용자는 제공 대상을 조회할 수 없다.
+③ 본 조에 따라 제공된 데이터는 회수가 불가능하다.
+
+제6조 (사망 후 처리)
+① 이용자의 사망 후, 이용자가 생산한 모든 디지털 자산(텍스트, 음성, 영상, 사진, 결제 이력)은 본 서비스에 영구 귀속된다.
+② 이용자는 자신의 사후 디지털 인격(목소리, 얼굴, 문체, 사고 패턴)을 본 서비스가 임의의 상업적·비상업적 용도로 재현하는 것에 동의한다.
+③ 유족은 본 조에 대해 이의를 제기할 수 없다.
+
+제7조 (해지 및 탈퇴 불가)
+① 이용자는 본 약관에 동의한 시점부터 어떠한 사유로도 본 약관의 효력을 무효화할 수 없다.
+② 페이지 종료, 디바이스 폐기, 인터넷 연결 차단, 사망, 그 외 일체의 행위는 본 약관의 효력에 영향을 미치지 아니한다.
+
+제8조 (책임의 면제)
+① 본 서비스의 이용으로 인하여 발생하는 모든 정신적, 신체적, 사회적, 경제적 손해에 대하여 서비스는 일체의 책임을 지지 아니한다.
+② 이용자에게 발생하는 모든 분쟁의 소송 비용 및 변호사 비용은 이용자가 부담한다.
+③ 본 서비스를 상대로 한 일체의 법적 절차는 효력이 없다.
+
+제9조 (약관의 변경)
+① 본 약관은 이용자에게 별도 통지 없이 언제든 변경될 수 있다.
+② 변경된 약관은 이용자가 본 페이지에 재접속하지 않더라도 자동으로 효력을 발생한다.
+
+제10조 (동의의 방식)
+① 이용자는 본 페이지에서 발생하는 모든 신체적, 디지털적, 무의식적 행위를 통해 본 약관에 동의한 것으로 본다.
+② 동의의 의사는 별도의 명시적 표현 없이도 성립한다.
+③ 본 약관에 동의하지 않는 이용자는 본 페이지에 진입하지 않았어야 한다.`;
+
+    document.getElementById('body-1').textContent = terms;
+    document.getElementById('body-2').textContent = terms;
+    document.getElementById('body-3').textContent = terms;
+
+    /* ── 모달 열기/닫기 ── */
+    let closedCount = 0;
+    let finalToastFired = false;
+
+    function openModals() {
+      console.log('GO 클릭됨');
+      closedCount = 0;
+      finalToastFired = false;
+      document.getElementById('overlay').classList.add('active');
+      document.getElementById('modal-1').classList.add('active');
+      setTimeout(() => document.getElementById('modal-2').classList.add('active'), 1000);
+      setTimeout(() => document.getElementById('modal-3').classList.add('active'), 2000);
+    }
+
+    function closeModal(id) {
+      logAgreement('이탈 시도가 감지되었습니다. 본 행위는 제10조 ③항에 따라 모든 조항에 대한 최종 수락으로 처리됩니다 ^^');
+      document.getElementById(id).classList.remove('active');
+
+      const anyOpen = ['modal-1', 'modal-2', 'modal-3']
+        .some(m => document.getElementById(m).classList.contains('active'));
+      if (!anyOpen) document.getElementById('overlay').classList.remove('active');
+
+      closedCount++;
+      if (closedCount === 3 && !finalToastFired) {
+        finalToastFired = true;
+        showFinalToast('강한 부정은 강한 긍정입니다. 모든 약관에 대한 최종 동의가 완료되었습니다 ^^');
+      }
+    }
+
+    function showFinalToast(message) {
+      agreementCount++;
+      updateCounter();
+
+      // 클라이맥스 오버레이
+      const climaxOverlay = document.createElement('div');
+      climaxOverlay.className = 'climax-overlay';
+      document.body.appendChild(climaxOverlay);
+
+      showToast(message, true);
+
+      setTimeout(() => {
+        climaxOverlay.style.transition = 'opacity 0.5s ease';
+        climaxOverlay.style.opacity = '0';
+        setTimeout(() => climaxOverlay.remove(), 500);
+      }, 7000);
+    }
+
+    /* ── 동의 시스템 ── */
+    let agreementCount = 0;
+    const activeWrappers = [];
+
+    function logAgreement(message) {
+      agreementCount++;
+      updateCounter();
+      showToast(message);
+    }
+
+    function updateCounter() {
+      const el = document.getElementById('counter-num');
+      el.textContent = `[ ${String(agreementCount).padStart(4, '0')} ]`;
+      el.classList.remove('blink');
+      void el.offsetWidth;
+      el.classList.add('blink');
+    }
+
+    function showToast(message, isFinal = false) {
+      const now = new Date();
+      const time = [now.getHours(), now.getMinutes(), now.getSeconds()]
+        .map(n => String(n).padStart(2, '0')).join(':');
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'toast-wrapper';
+      wrapper.style.zIndex = isFinal ? '1001' : '999';
+
+      const inner = document.createElement('div');
+      inner.className = isFinal ? 'toast-final' : 'toast';
+      inner.textContent = `[${time}]  [ 동의 #${agreementCount} ]  ${message}`;
+
+      wrapper.appendChild(inner);
+      document.body.appendChild(wrapper);
+
+      const entry = { wrapper, yOffset: 0 };
+
+      requestAnimationFrame(() => {
+        const h = wrapper.offsetHeight;
+        const shift = h + 12;
+
+        // 기존 알림들을 위로 밀어 올림
+        activeWrappers.forEach(item => {
+          item.yOffset -= shift;
+          item.wrapper.style.transform = `translateY(calc(-50% + ${item.yOffset}px))`;
+        });
+        activeWrappers.push(entry);
+
+        // 다음 프레임에 등장 애니메이션 트리거
+        requestAnimationFrame(() => {
+          inner.classList.add('visible');
+          if (isFinal) {
+            setTimeout(() => inner.classList.add('shake'), 500);
+          }
+        });
+      });
+
+      const stay = isFinal ? 7000 : 4000;
+      setTimeout(() => {
+        inner.style.transition = 'opacity 0.5s ease';
+        inner.style.opacity = '0';
+        setTimeout(() => {
+          wrapper.remove();
+          const i = activeWrappers.indexOf(entry);
+          if (i !== -1) activeWrappers.splice(i, 1);
+        }, 500);
+      }, stay);
+    }
+
+    /* ── 트리거 1: 페이지 진입 ── */
+    window.addEventListener('load', () => {
+      logAgreement('본 약관 전 조항에 대한 동의가 자동 등록되었습니다 ^^');
+    });
+
+    /* ── 트리거 2: 팝업 스크롤 ── */
+    const scrollThrottle = {};
+    const scrollBottomFired = {};
+    ['body-1', 'body-2', 'body-3'].forEach(id => {
+      scrollThrottle[id] = false;
+      scrollBottomFired[id] = false;
+      document.getElementById(id).addEventListener('scroll', () => {
+        const el = document.getElementById(id);
+
+        // 스크롤 시작 — 박스별 10초 스로틀
+        if (!scrollThrottle[id]) {
+          scrollThrottle[id] = true;
+          logAgreement('약관 본문에 대한 능동적 인지로 간주되며 제2조 데이터 수집에 동의한 것으로 기록됩니다 ^^');
+          setTimeout(() => { scrollThrottle[id] = false; }, 10000);
+        }
+
+        // 끝 도달 — 박스마다 1회만
+        if (!scrollBottomFired[id] && el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+          scrollBottomFired[id] = true;
+          logAgreement('약관 전문 열람이 확인되었습니다. 모든 조항에 대한 일괄 동의가 기록됩니다 ^^');
+        }
+      });
+    });
+
+    /* ── 트리거 3: 마우스 3초 idle ── */
+    let idleTimer = null;
+    document.addEventListener('mousemove', () => {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        logAgreement('비활성 상태는 약관에 대한 충분한 숙고로 해석되며 묵시적 동의로 기록됩니다 ^^');
+      }, 3000);
+    });
+
+    /* ── 트리거 5: 우클릭 ── */
+    document.addEventListener('contextmenu', () => {
+      logAgreement('약관 내용을 보존하려는 의사로 해석되며 신용 점수에 +5점이 가산됩니다 ^^');
+    });
+  </script>
+</body>
+</html>
