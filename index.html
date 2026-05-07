@@ -325,7 +325,7 @@
   <div class="main-fg"></div>
 
   <!-- 동의 카운터 -->
-  <div class="agree-counter">
+  <div class="agree-counter" id="agree-counter" style="visibility: hidden;">
     <div>AGREEMENTS LOGGED</div>
     <div>━━━━━━━━━━━━━</div>
     <div class="agree-counter-num" id="counter-num">[ 0000 ]</div>
@@ -454,10 +454,12 @@
       console.log('GO 클릭됨');
       closedCount = 0;
       finalToastFired = false;
+      document.getElementById('agree-counter').style.visibility = 'visible';
       document.getElementById('overlay').classList.add('active');
       document.getElementById('modal-1').classList.add('active');
       setTimeout(() => document.getElementById('modal-2').classList.add('active'), 1000);
       setTimeout(() => document.getElementById('modal-3').classList.add('active'), 2000);
+      logAgreement('본 약관 전 조항에 대한 동의가 자동 등록되었습니다 ^^');
     }
 
     function closeModal(id) {
@@ -561,10 +563,6 @@
       }, stay);
     }
 
-    /* ── 트리거 1: 페이지 진입 ── */
-    window.addEventListener('load', () => {
-      logAgreement('본 약관 전 조항에 대한 동의가 자동 등록되었습니다 ^^');
-    });
 
     /* ── 트리거 2: 팝업 스크롤 ── */
     const scrollThrottle = {};
