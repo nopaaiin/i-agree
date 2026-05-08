@@ -491,7 +491,6 @@
         document.getElementById('modal-3').classList.add('active');
         scheduleStamp('modal-3');
       }, 2000);
-      logAgreement('본 약관 전 조항에 대한 동의가 자동 등록되었습니다 ^^');
     }
 
     /* ── 도장 시스템 ── */
@@ -651,7 +650,7 @@
       clearTimeout(idleTimer);
       idleTimer = setTimeout(() => {
         logAgreement('비활성 상태는 약관에 대한 충분한 숙고로 해석되며 묵시적 동의로 기록됩니다 ^^');
-      }, 3000);
+      }, 10000);
     });
 
     /* ── 트리거 5: 우클릭 ── */
