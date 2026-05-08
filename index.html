@@ -181,6 +181,50 @@
       pointer-events: none;
     }
 
+    .modal-content {
+      position: relative;
+      height: 100%;
+      width: 100%;
+    }
+
+    .stamp {
+      position: absolute;
+      right: 8%;
+      bottom: 4%;
+      width: 15%;
+      height: auto;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(1.5) rotate(-12deg) translateY(-30px);
+    }
+
+    @keyframes stampDrop {
+      from { opacity: 0; transform: scale(1.5) rotate(-12deg) translateY(-30px); }
+      to   { opacity: 1; transform: scale(1) rotate(0deg) translateY(0); }
+    }
+
+    .stamp.dropped {
+      animation: stampDrop 0.15s ease-out forwards;
+    }
+
+    @keyframes contentShake {
+      0%   { transform: translateX(0); }
+      20%  { transform: translateX(-4px); }
+      40%  { transform: translateX(4px); }
+      60%  { transform: translateX(-2px); }
+      80%  { transform: translateX(2px); }
+      100% { transform: translateX(0); }
+    }
+
+    .modal-content.shaking {
+      animation: contentShake 0.1s ease;
+    }
+
+    @keyframes flashFadeOut {
+      from { opacity: 1; }
+      to   { opacity: 0; }
+    }
+
     /* 박스 01 */
     @keyframes popIn1 {
       from { opacity: 0; transform: translate(calc(-50% - 120px), calc(-50% - 80px)) rotate(-3deg) scale(0.95); }
@@ -365,26 +409,32 @@
 
   <!-- 팝업 박스들 -->
   <div class="modal modal-1" id="modal-1">
-    <img class="modal-img" src="assets/agree.png" alt="">
-    <div class="modal-header">
-      <button class="modal-close" onclick="closeModal('modal-1')">✕</button>
-      <span class="modal-id">01 / 03</span>
+    <div class="modal-content" id="content-1">
+      <img class="modal-img" src="assets/agree.png" alt="">
+      <div class="modal-header">
+        <button class="modal-close" onclick="closeModal('modal-1')">✕</button>
+        <span class="modal-id">01 / 03</span>
+      </div>
     </div>
   </div>
 
   <div class="modal modal-2" id="modal-2">
-    <img class="modal-img" src="assets/agree.png" alt="">
-    <div class="modal-header">
-      <button class="modal-close" onclick="closeModal('modal-2')">✕</button>
-      <span class="modal-id">02 / 03</span>
+    <div class="modal-content" id="content-2">
+      <img class="modal-img" src="assets/agree.png" alt="">
+      <div class="modal-header">
+        <button class="modal-close" onclick="closeModal('modal-2')">✕</button>
+        <span class="modal-id">02 / 03</span>
+      </div>
     </div>
   </div>
 
   <div class="modal modal-3" id="modal-3">
-    <img class="modal-img" src="assets/agree.png" alt="">
-    <div class="modal-header">
-      <button class="modal-close" onclick="closeModal('modal-3')">✕</button>
-      <span class="modal-id">03 / 03</span>
+    <div class="modal-content" id="content-3">
+      <img class="modal-img" src="assets/agree.png" alt="">
+      <div class="modal-header">
+        <button class="modal-close" onclick="closeModal('modal-3')">✕</button>
+        <span class="modal-id">03 / 03</span>
+      </div>
     </div>
   </div>
 
@@ -425,12 +475,65 @@
     function openModals() {
       closedCount = 0;
       finalToastFired = false;
+      stampFired['modal-1'] = false;
+      stampFired['modal-2'] = false;
+      stampFired['modal-3'] = false;
       document.getElementById('agree-counter').style.visibility = 'visible';
       document.getElementById('overlay').classList.add('active');
       document.getElementById('modal-1').classList.add('active');
-      setTimeout(() => document.getElementById('modal-2').classList.add('active'), 1000);
-      setTimeout(() => document.getElementById('modal-3').classList.add('active'), 2000);
+      scheduleStamp('modal-1');
+      setTimeout(() => {
+        document.getElementById('modal-2').classList.add('active');
+        scheduleStamp('modal-2');
+      }, 1000);
+      setTimeout(() => {
+        document.getElementById('modal-3').classList.add('active');
+        scheduleStamp('modal-3');
+      }, 2000);
       logAgreement('본 약관 전 조항에 대한 동의가 자동 등록되었습니다 ^^');
+    }
+
+    /* ── 도장 시스템 ── */
+    const stampFired = {};
+
+    function scheduleStamp(modalId) {
+      const num = modalId.split('-')[1];
+      setTimeout(() => {
+        if (!document.getElementById(modalId).classList.contains('active')) return;
+        if (stampFired[modalId]) return;
+        stampFired[modalId] = true;
+        applyStamp(modalId, 'content-' + num);
+      }, 5000);
+    }
+
+    function applyStamp(modalId, contentId) {
+      const content = document.getElementById(contentId);
+
+      const stamp = document.createElement('img');
+      stamp.src = 'assets/finger.png';
+      stamp.className = 'stamp';
+      content.appendChild(stamp);
+
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        stamp.classList.add('dropped');
+      }));
+
+      setTimeout(() => {
+        // 박스 떨림
+        content.classList.add('shaking');
+        content.addEventListener('animationend', () => content.classList.remove('shaking'), { once: true });
+
+        // 화면 플래시
+        const flash = document.createElement('div');
+        flash.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;pointer-events:none;animation:fadeIn 0.05s ease forwards;';
+        document.body.appendChild(flash);
+        setTimeout(() => {
+          flash.style.animation = 'flashFadeOut 0.15s ease forwards';
+          setTimeout(() => flash.remove(), 150);
+        }, 50);
+
+        logAgreement('서명이 완료되었습니다. 본 동의서는 영구 효력을 발생합니다 ^^');
+      }, 150);
     }
 
     function closeModal(id) {
