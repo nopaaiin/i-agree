@@ -249,26 +249,6 @@
       color: #000;
     }
 
-    /* 동의하십니까 */
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0; }
-    }
-
-    .modal-agree {
-      position: absolute;
-      bottom: 24px;
-      right: 24px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #000;
-      pointer-events: none;
-    }
-
-    .modal-agree .cursor {
-      animation: blink 1s step-end infinite;
-    }
-
     /* ── 알림 토스트 ── */
 
     /* wrapper: 전체 뷰포트 너비, top 50% 기준으로 translateY(-50%) = 수직 중앙 */
@@ -390,7 +370,6 @@
       <button class="modal-close" onclick="closeModal('modal-1')">✕</button>
       <span class="modal-id">01 / 03</span>
     </div>
-    <div class="modal-agree">동의하십니까?<span class="cursor">_</span></div>
   </div>
 
   <div class="modal modal-2" id="modal-2">
@@ -399,7 +378,6 @@
       <button class="modal-close" onclick="closeModal('modal-2')">✕</button>
       <span class="modal-id">02 / 03</span>
     </div>
-    <div class="modal-agree">동의하십니까?<span class="cursor">_</span></div>
   </div>
 
   <div class="modal modal-3" id="modal-3">
@@ -408,7 +386,6 @@
       <button class="modal-close" onclick="closeModal('modal-3')">✕</button>
       <span class="modal-id">03 / 03</span>
     </div>
-    <div class="modal-agree">동의하십니까?<span class="cursor">_</span></div>
   </div>
 
 
