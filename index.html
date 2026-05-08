@@ -101,36 +101,34 @@
       animation: counterBlink 0.2s ease;
     }
 
-    /* ── 중간 페이지 ── */
-    .agree-page {
+    /* ── 레이아웃 페이지 ── */
+    .layout-overlay {
       display: none;
       position: fixed;
       inset: 0;
+      background: rgba(0, 0, 0, 0.5);
       z-index: 50;
-      opacity: 0;
-      transition: opacity 0.4s ease-out;
+      animation: fadeIn 0.3s ease;
     }
 
-    .agree-bg {
-      position: absolute;
-      inset: 0;
-      background-image: url('assets/agree.png');
-      background-size: cover;
-      background-position: center;
-      filter: blur(40px) brightness(0.5);
-      transform: scale(1.05);
+    .layout-box {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 80vh;
+      z-index: 51;
     }
 
-    .agree-fg {
-      position: absolute;
-      inset: 0;
-      background-image: url('assets/agree.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
+    .layout-img {
+      height: 100%;
+      width: auto;
+      display: block;
+      pointer-events: none;
     }
 
-    .agree-hotspot {
+    .layout-hotspot {
       position: absolute;
       right: 0;
       bottom: 0;
@@ -139,7 +137,7 @@
       cursor: pointer;
     }
 
-    .agree-hotspot:hover {
+    .layout-hotspot:hover {
       background: rgba(255, 255, 255, 0.04);
     }
 
@@ -369,11 +367,11 @@
   <div class="main-bg"></div>
   <div class="main-fg"></div>
 
-  <!-- 중간 페이지 -->
-  <div class="agree-page" id="agree-page">
-    <div class="agree-bg"></div>
-    <div class="agree-fg"></div>
-    <div class="agree-hotspot" onclick="enterTerms()"></div>
+  <!-- 레이아웃 페이지 -->
+  <div class="layout-overlay" id="layout-overlay"></div>
+  <div class="layout-box" id="layout-box">
+    <img class="layout-img" src="assets/layout.png" alt="">
+    <div class="layout-hotspot" onclick="enterTerms()"></div>
   </div>
 
   <!-- 동의 카운터 -->
@@ -504,21 +502,14 @@
 
     function showAgreePage() {
       console.log('GO 클릭됨');
-      const page = document.getElementById('agree-page');
-      page.style.display = 'block';
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        page.style.opacity = '1';
-      }));
+      document.getElementById('layout-overlay').style.display = 'block';
+      document.getElementById('layout-box').style.display = 'block';
     }
 
     function enterTerms() {
-      const page = document.getElementById('agree-page');
-      page.style.transition = 'opacity 0.3s ease';
-      page.style.opacity = '0';
-      setTimeout(() => {
-        page.style.display = 'none';
-        openModals();
-      }, 300);
+      document.getElementById('layout-overlay').style.display = 'none';
+      document.getElementById('layout-box').style.display = 'none';
+      openModals();
     }
 
     function openModals() {
