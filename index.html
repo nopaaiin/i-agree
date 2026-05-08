@@ -101,6 +101,48 @@
       animation: counterBlink 0.2s ease;
     }
 
+    /* ── 중간 페이지 ── */
+    .agree-page {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.4s ease-out;
+    }
+
+    .agree-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('assets/agree.png');
+      background-size: cover;
+      background-position: center;
+      filter: blur(40px) brightness(0.5);
+      transform: scale(1.05);
+    }
+
+    .agree-fg {
+      position: absolute;
+      inset: 0;
+      background-image: url('assets/agree.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    .agree-hotspot {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 50%;
+      height: 50%;
+      cursor: pointer;
+    }
+
+    .agree-hotspot:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
     /* ── 오버레이 ── */
     .overlay {
       display: none;
@@ -327,6 +369,13 @@
   <div class="main-bg"></div>
   <div class="main-fg"></div>
 
+  <!-- 중간 페이지 -->
+  <div class="agree-page" id="agree-page">
+    <div class="agree-bg"></div>
+    <div class="agree-fg"></div>
+    <div class="agree-hotspot" onclick="enterTerms()"></div>
+  </div>
+
   <!-- 동의 카운터 -->
   <div class="agree-counter" id="agree-counter" style="visibility: hidden;">
     <div>AGREEMENTS LOGGED</div>
@@ -341,7 +390,7 @@
       class="go-btn"
       src="assets/go.png"
       alt="GO"
-      onclick="openModals()"
+      onclick="showAgreePage()"
     >
   </div>
 
@@ -453,8 +502,26 @@
     let closedCount = 0;
     let finalToastFired = false;
 
-    function openModals() {
+    function showAgreePage() {
       console.log('GO 클릭됨');
+      const page = document.getElementById('agree-page');
+      page.style.display = 'block';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        page.style.opacity = '1';
+      }));
+    }
+
+    function enterTerms() {
+      const page = document.getElementById('agree-page');
+      page.style.transition = 'opacity 0.3s ease';
+      page.style.opacity = '0';
+      setTimeout(() => {
+        page.style.display = 'none';
+        openModals();
+      }, 300);
+    }
+
+    function openModals() {
       closedCount = 0;
       finalToastFired = false;
       document.getElementById('agree-counter').style.visibility = 'visible';
