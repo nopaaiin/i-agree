@@ -482,14 +482,15 @@
       document.getElementById('agree-counter').style.visibility = 'visible';
       document.getElementById('overlay').classList.add('active');
       document.getElementById('modal-1').classList.add('active');
-      scheduleStamp('modal-1');
-      setTimeout(() => {
-        document.getElementById('modal-2').classList.add('active');
-        scheduleStamp('modal-2');
-      }, 1000);
+      setTimeout(() => document.getElementById('modal-2').classList.add('active'), 1000);
       setTimeout(() => {
         document.getElementById('modal-3').classList.add('active');
-        scheduleStamp('modal-3');
+        // 박스 3 등장 후 4초 → 역순으로 도장
+        setTimeout(() => {
+          applyStampIfActive('modal-3', 'content-3');
+          setTimeout(() => applyStampIfActive('modal-2', 'content-2'), 1000);
+          setTimeout(() => applyStampIfActive('modal-1', 'content-1'), 2000);
+        }, 4000);
       }, 2000);
     }
 
@@ -497,17 +498,14 @@
     const stampFired = {};
     let stampCount = 0;
 
-    function scheduleStamp(modalId) {
-      const num = modalId.split('-')[1];
-      setTimeout(() => {
-        if (!document.getElementById(modalId).classList.contains('active')) return;
-        if (stampFired[modalId]) return;
-        stampFired[modalId] = true;
-        applyStamp(modalId, 'content-' + num);
-      }, 3000);
+    function applyStampIfActive(modalId, contentId) {
+      if (!document.getElementById(modalId).classList.contains('active')) return;
+      if (stampFired[modalId]) return;
+      stampFired[modalId] = true;
+      applyStamp(contentId);
     }
 
-    function applyStamp(modalId, contentId) {
+    function applyStamp(contentId) {
       const content = document.getElementById(contentId);
 
       const stamp = document.createElement('img');
@@ -520,19 +518,6 @@
       }));
 
       setTimeout(() => {
-        // 박스 떨림
-        content.classList.add('shaking');
-        content.addEventListener('animationend', () => content.classList.remove('shaking'), { once: true });
-
-        // 화면 플래시
-        const flash = document.createElement('div');
-        flash.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;pointer-events:none;animation:fadeIn 0.05s ease forwards;';
-        document.body.appendChild(flash);
-        setTimeout(() => {
-          flash.style.animation = 'flashFadeOut 0.15s ease forwards';
-          setTimeout(() => flash.remove(), 150);
-        }, 50);
-
         agreementCount++;
         updateCounter();
         stampCount++;
