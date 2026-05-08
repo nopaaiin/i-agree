@@ -478,6 +478,7 @@
       stampFired['modal-1'] = false;
       stampFired['modal-2'] = false;
       stampFired['modal-3'] = false;
+      stampCount = 0;
       document.getElementById('agree-counter').style.visibility = 'visible';
       document.getElementById('overlay').classList.add('active');
       document.getElementById('modal-1').classList.add('active');
@@ -495,6 +496,7 @@
 
     /* ── 도장 시스템 ── */
     const stampFired = {};
+    let stampCount = 0;
 
     function scheduleStamp(modalId) {
       const num = modalId.split('-')[1];
@@ -503,7 +505,7 @@
         if (stampFired[modalId]) return;
         stampFired[modalId] = true;
         applyStamp(modalId, 'content-' + num);
-      }, 5000);
+      }, 3000);
     }
 
     function applyStamp(modalId, contentId) {
@@ -532,7 +534,12 @@
           setTimeout(() => flash.remove(), 150);
         }, 50);
 
-        logAgreement('서명이 완료되었습니다. 본 동의서는 영구 효력을 발생합니다 ^^');
+        agreementCount++;
+        updateCounter();
+        stampCount++;
+        if (stampCount === 3) {
+          showToast('서명이 완료되었습니다. 본 동의서는 영구 효력을 발생합니다 ^^');
+        }
       }, 150);
     }
 
