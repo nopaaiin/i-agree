@@ -166,16 +166,19 @@
       position: fixed;
       top: 50%;
       left: 50%;
-      width: 50%;
-      height: 75%;
-      background: #ffffff;
-      border-radius: 4px;
-      padding: 40px;
-      flex-direction: column;
+      height: 80vh;
+      width: auto;
     }
 
     .modal.active {
-      display: flex;
+      display: block;
+    }
+
+    .modal-img {
+      height: 100%;
+      width: auto;
+      display: block;
+      pointer-events: none;
     }
 
     /* 박스 01 */
@@ -187,8 +190,6 @@
     .modal-1 {
       transform: translate(calc(-50% - 120px), calc(-50% - 80px)) rotate(-3deg);
       z-index: 101;
-      border: 1px solid rgba(204, 255, 0, 0.4);
-      box-shadow: 0 0 12px rgba(204, 255, 0, 0.5);
     }
 
     .modal-1.active { animation: popIn1 0.3s ease; }
@@ -202,8 +203,6 @@
     .modal-2 {
       transform: translate(calc(-50% + 140px), calc(-50% - 40px)) rotate(2deg);
       z-index: 102;
-      border: 1px solid rgba(204, 255, 0, 0.4);
-      box-shadow: 0 0 16px rgba(204, 255, 0, 0.55);
     }
 
     .modal-2.active { animation: popIn2 0.3s ease; }
@@ -217,19 +216,19 @@
     .modal-3 {
       transform: translate(calc(-50% + 60px), calc(-50% + 110px)) rotate(-1.5deg);
       z-index: 103;
-      border: 1px solid rgba(204, 255, 0, 0.4);
-      box-shadow: 0 0 20px rgba(204, 255, 0, 0.6);
     }
 
     .modal-3.active { animation: popIn3 0.3s ease; }
 
     /* 헤더 */
     .modal-header {
+      position: absolute;
+      top: 16px;
+      left: 16px;
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 16px;
-      flex-shrink: 0;
+      z-index: 1;
     }
 
     .modal-close {
@@ -248,16 +247,6 @@
       font-family: monospace;
       font-size: 11px;
       color: #000;
-    }
-
-    /* 본문 */
-    .modal-body {
-      flex: 1;
-      overflow-y: auto;
-      font-size: 14px;
-      color: #000;
-      line-height: 1.8;
-      white-space: pre-wrap;
     }
 
     /* 동의하십니까 */
@@ -396,29 +385,29 @@
 
   <!-- 팝업 박스들 -->
   <div class="modal modal-1" id="modal-1">
+    <img class="modal-img" src="assets/agree.png" alt="">
     <div class="modal-header">
       <button class="modal-close" onclick="closeModal('modal-1')">✕</button>
       <span class="modal-id">01 / 03</span>
     </div>
-    <div class="modal-body" id="body-1"></div>
     <div class="modal-agree">동의하십니까?<span class="cursor">_</span></div>
   </div>
 
   <div class="modal modal-2" id="modal-2">
+    <img class="modal-img" src="assets/agree.png" alt="">
     <div class="modal-header">
       <button class="modal-close" onclick="closeModal('modal-2')">✕</button>
       <span class="modal-id">02 / 03</span>
     </div>
-    <div class="modal-body" id="body-2"></div>
     <div class="modal-agree">동의하십니까?<span class="cursor">_</span></div>
   </div>
 
   <div class="modal modal-3" id="modal-3">
+    <img class="modal-img" src="assets/agree.png" alt="">
     <div class="modal-header">
       <button class="modal-close" onclick="closeModal('modal-3')">✕</button>
       <span class="modal-id">03 / 03</span>
     </div>
-    <div class="modal-body" id="body-3"></div>
     <div class="modal-agree">동의하십니까?<span class="cursor">_</span></div>
   </div>
 
@@ -439,62 +428,6 @@
       frame += 1;
       hud.textContent = `LAT ${lat.toFixed(7)}\nLON ${lon.toFixed(7)}\nFRAME ${pad(frame)}`;
     }, 100);
-
-    /* ── 약관 텍스트 ── */
-    const terms = `SOCIAL CREDIT 서비스 이용약관
-
-본 약관은 사용자가 본 페이지에 진입한 시점부터 효력을 발생합니다.
-
-제1조 (총칙)
-본 약관은 'SOCIAL CREDIT'(이하 '서비스')과 이용자 간의 권리·의무 및 책임사항을 규정함을 목적으로 한다. 본 페이지에 접속한 모든 자는 본 약관의 전 조항에 동의한 것으로 본다.
-
-제2조 (개인정보의 수집 및 보관)
-① 서비스는 이용자의 인적사항, 생체정보(얼굴, 음성, 홍채, 지문, 보행 패턴, 심박 변이도), 행동 로그, 위치 데이터, 통신 기록, 검색 이력, 결제 내역, 의료 정보 일체를 수집한다.
-② 수집된 정보는 이용자의 사망 시점으로부터 100년간 보관되며, 별도 통지 없이 직계가족 및 3차 인맥 범위까지 제공될 수 있다.
-③ 이용자는 본 항에 따른 수집 및 보관에 대해 어떠한 이의도 제기할 수 없다.
-
-제3조 (행동 추적)
-① 본 서비스는 이용자가 본 페이지 외부에서 수행하는 모든 디지털 활동을 분석 대상에 포함한다.
-② 이용자의 마이크 및 카메라는 이용자가 인지하지 못하는 시간대에 활성화될 수 있으며, 수집된 데이터는 음성 인식 모델 및 표정 분석 모델의 학습에 사용된다.
-③ 본 항의 활성화 사실은 이용자에게 통지되지 아니한다.
-
-제4조 (사회적 신용 점수)
-① 서비스는 이용자의 모든 활동을 정량화하여 0점부터 1000점까지의 사회적 신용 점수로 환산한다.
-② 점수 산정 기준 및 알고리즘은 영업기밀에 해당하며 비공개로 한다.
-③ 점수 350점 이하 이용자는 본 서비스 및 제휴 서비스(금융, 의료, 교육, 통신, 운송 등)의 이용이 영구 제한될 수 있다.
-④ 점수에 대한 이의제기는 접수되지 아니한다.
-
-제5조 (제3자 제공 및 영구 양도)
-① 이용자의 데이터는 광고 파트너사, 정부 기관, 학술 연구기관, 보험사, 신용평가기관, 채용 대행사, 그리고 본 서비스가 제휴 관계에 있는 모든 법인에 제공된다.
-② 제공 사실은 이용자에게 통지되지 아니하며, 이용자는 제공 대상을 조회할 수 없다.
-③ 본 조에 따라 제공된 데이터는 회수가 불가능하다.
-
-제6조 (사망 후 처리)
-① 이용자의 사망 후, 이용자가 생산한 모든 디지털 자산(텍스트, 음성, 영상, 사진, 결제 이력)은 본 서비스에 영구 귀속된다.
-② 이용자는 자신의 사후 디지털 인격(목소리, 얼굴, 문체, 사고 패턴)을 본 서비스가 임의의 상업적·비상업적 용도로 재현하는 것에 동의한다.
-③ 유족은 본 조에 대해 이의를 제기할 수 없다.
-
-제7조 (해지 및 탈퇴 불가)
-① 이용자는 본 약관에 동의한 시점부터 어떠한 사유로도 본 약관의 효력을 무효화할 수 없다.
-② 페이지 종료, 디바이스 폐기, 인터넷 연결 차단, 사망, 그 외 일체의 행위는 본 약관의 효력에 영향을 미치지 아니한다.
-
-제8조 (책임의 면제)
-① 본 서비스의 이용으로 인하여 발생하는 모든 정신적, 신체적, 사회적, 경제적 손해에 대하여 서비스는 일체의 책임을 지지 아니한다.
-② 이용자에게 발생하는 모든 분쟁의 소송 비용 및 변호사 비용은 이용자가 부담한다.
-③ 본 서비스를 상대로 한 일체의 법적 절차는 효력이 없다.
-
-제9조 (약관의 변경)
-① 본 약관은 이용자에게 별도 통지 없이 언제든 변경될 수 있다.
-② 변경된 약관은 이용자가 본 페이지에 재접속하지 않더라도 자동으로 효력을 발생한다.
-
-제10조 (동의의 방식)
-① 이용자는 본 페이지에서 발생하는 모든 신체적, 디지털적, 무의식적 행위를 통해 본 약관에 동의한 것으로 본다.
-② 동의의 의사는 별도의 명시적 표현 없이도 성립한다.
-③ 본 약관에 동의하지 않는 이용자는 본 페이지에 진입하지 않았어야 한다.`;
-
-    document.getElementById('body-1').textContent = terms;
-    document.getElementById('body-2').textContent = terms;
-    document.getElementById('body-3').textContent = terms;
 
     /* ── 모달 열기/닫기 ── */
     let closedCount = 0;
@@ -624,30 +557,6 @@
       }, stay);
     }
 
-
-    /* ── 트리거 2: 팝업 스크롤 ── */
-    const scrollThrottle = {};
-    const scrollBottomFired = {};
-    ['body-1', 'body-2', 'body-3'].forEach(id => {
-      scrollThrottle[id] = false;
-      scrollBottomFired[id] = false;
-      document.getElementById(id).addEventListener('scroll', () => {
-        const el = document.getElementById(id);
-
-        // 스크롤 시작 — 박스별 10초 스로틀
-        if (!scrollThrottle[id]) {
-          scrollThrottle[id] = true;
-          logAgreement('약관 본문에 대한 능동적 인지로 간주되며 제2조 데이터 수집에 동의한 것으로 기록됩니다 ^^');
-          setTimeout(() => { scrollThrottle[id] = false; }, 10000);
-        }
-
-        // 끝 도달 — 박스마다 1회만
-        if (!scrollBottomFired[id] && el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
-          scrollBottomFired[id] = true;
-          logAgreement('약관 전문 열람이 확인되었습니다. 모든 조항에 대한 일괄 동의가 기록됩니다 ^^');
-        }
-      });
-    });
 
     /* ── 트리거 3: 마우스 3초 idle ── */
     let idleTimer = null;
