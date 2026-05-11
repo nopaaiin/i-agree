@@ -225,44 +225,18 @@
       to   { opacity: 0; }
     }
 
-    /* 박스 01 */
-    @keyframes popIn1 {
-      from { opacity: 0; transform: translate(calc(-50% - 120px), calc(-50% - 80px)) rotate(-3deg) scale(0.95); }
-      to   { opacity: 1; transform: translate(calc(-50% - 120px), calc(-50% - 80px)) rotate(-3deg) scale(1); }
+    /* 박스 (단일, 정중앙) */
+    @keyframes popIn {
+      from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+      to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     }
 
     .modal-1 {
-      transform: translate(calc(-50% - 120px), calc(-50% - 80px)) rotate(-3deg);
+      transform: translate(-50%, -50%);
       z-index: 101;
     }
 
-    .modal-1.active { animation: popIn1 0.3s ease; }
-
-    /* 박스 02 */
-    @keyframes popIn2 {
-      from { opacity: 0; transform: translate(calc(-50% + 140px), calc(-50% - 40px)) rotate(2deg) scale(0.95); }
-      to   { opacity: 1; transform: translate(calc(-50% + 140px), calc(-50% - 40px)) rotate(2deg) scale(1); }
-    }
-
-    .modal-2 {
-      transform: translate(calc(-50% + 140px), calc(-50% - 40px)) rotate(2deg);
-      z-index: 102;
-    }
-
-    .modal-2.active { animation: popIn2 0.3s ease; }
-
-    /* 박스 03 */
-    @keyframes popIn3 {
-      from { opacity: 0; transform: translate(calc(-50% + 60px), calc(-50% + 110px)) rotate(-1.5deg) scale(0.95); }
-      to   { opacity: 1; transform: translate(calc(-50% + 60px), calc(-50% + 110px)) rotate(-1.5deg) scale(1); }
-    }
-
-    .modal-3 {
-      transform: translate(calc(-50% + 60px), calc(-50% + 110px)) rotate(-1.5deg);
-      z-index: 103;
-    }
-
-    .modal-3.active { animation: popIn3 0.3s ease; }
+    .modal-1.active { animation: popIn 0.3s ease; }
 
     /* 헤더 */
     .modal-header {
@@ -271,7 +245,6 @@
       left: 16px;
       display: flex;
       align-items: center;
-      gap: 10px;
       z-index: 1;
     }
 
@@ -287,10 +260,13 @@
 
     .modal-close:hover { color: #333; }
 
-    .modal-id {
-      font-family: monospace;
-      font-size: 11px;
-      color: #000;
+    /* 매트릭스 레인 캔버스 */
+    #matrix-rain {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      pointer-events: none;
+      display: none;
     }
 
     /* ── 알림 토스트 ── */
@@ -405,35 +381,15 @@
     >
   </div>
 
+  <canvas id="matrix-rain"></canvas>
   <div class="overlay" id="overlay"></div>
 
-  <!-- 팝업 박스들 -->
+  <!-- 팝업 박스 -->
   <div class="modal modal-1" id="modal-1">
     <div class="modal-content" id="content-1">
       <img class="modal-img" src="assets/agree.png" alt="">
       <div class="modal-header">
         <button class="modal-close" onclick="closeModal('modal-1')">✕</button>
-        <span class="modal-id">01 / 03</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal modal-2" id="modal-2">
-    <div class="modal-content" id="content-2">
-      <img class="modal-img" src="assets/agree.png" alt="">
-      <div class="modal-header">
-        <button class="modal-close" onclick="closeModal('modal-2')">✕</button>
-        <span class="modal-id">02 / 03</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal modal-3" id="modal-3">
-    <div class="modal-content" id="content-3">
-      <img class="modal-img" src="assets/agree.png" alt="">
-      <div class="modal-header">
-        <button class="modal-close" onclick="closeModal('modal-3')">✕</button>
-        <span class="modal-id">03 / 03</span>
       </div>
     </div>
   </div>
@@ -456,12 +412,17 @@
       hud.textContent = `LAT ${lat.toFixed(7)}\nLON ${lon.toFixed(7)}\nFRAME ${pad(frame)}`;
     }, 100);
 
+    /* ── 동의 트리거 활성화 플래그 ── */
+    let triggersActive = false;
+
     /* ── 모달 열기/닫기 ── */
     let closedCount = 0;
     let finalToastFired = false;
 
     function showAgreePage() {
       console.log('GO 클릭됨');
+      triggersActive = false;
+      clearTimeout(idleTimer);
       document.getElementById('layout-overlay').style.display = 'block';
       document.getElementById('layout-box').style.display = 'block';
     }
@@ -476,22 +437,13 @@
       closedCount = 0;
       finalToastFired = false;
       stampFired['modal-1'] = false;
-      stampFired['modal-2'] = false;
-      stampFired['modal-3'] = false;
       stampCount = 0;
+      triggersActive = true;
       document.getElementById('agree-counter').style.visibility = 'visible';
       document.getElementById('overlay').classList.add('active');
       document.getElementById('modal-1').classList.add('active');
-      setTimeout(() => document.getElementById('modal-2').classList.add('active'), 1000);
-      setTimeout(() => {
-        document.getElementById('modal-3').classList.add('active');
-        // 박스 3 등장 후 4초 → 역순으로 도장
-        setTimeout(() => {
-          applyStampIfActive('modal-3', 'content-3');
-          setTimeout(() => applyStampIfActive('modal-2', 'content-2'), 1000);
-          setTimeout(() => applyStampIfActive('modal-1', 'content-1'), 2000);
-        }, 4000);
-      }, 2000);
+      startMatrix();
+      setTimeout(() => applyStampIfActive('modal-1', 'content-1'), 4000);
     }
 
     /* ── 도장 시스템 ── */
@@ -507,21 +459,16 @@
 
     function applyStamp(contentId) {
       const content = document.getElementById(contentId);
-
       const stamp = document.createElement('img');
       stamp.src = 'assets/finger.png';
       stamp.className = 'stamp';
       content.appendChild(stamp);
-
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        stamp.classList.add('dropped');
-      }));
-
+      requestAnimationFrame(() => requestAnimationFrame(() => stamp.classList.add('dropped')));
       setTimeout(() => {
         agreementCount++;
         updateCounter();
         stampCount++;
-        if (stampCount === 3) {
+        if (stampCount === 1) {
           showToast('서명이 완료되었습니다. 본 동의서는 영구 효력을 발생합니다 ^^');
         }
       }, 150);
@@ -530,13 +477,10 @@
     function closeModal(id) {
       logAgreement('이탈 시도가 감지되었습니다. 본 행위는 제10조 ③항에 따라 모든 조항에 대한 최종 수락으로 처리됩니다 ^^');
       document.getElementById(id).classList.remove('active');
-
-      const anyOpen = ['modal-1', 'modal-2', 'modal-3']
-        .some(m => document.getElementById(m).classList.contains('active'));
-      if (!anyOpen) document.getElementById('overlay').classList.remove('active');
-
+      document.getElementById('overlay').classList.remove('active');
+      stopMatrix();
       closedCount++;
-      if (closedCount === 3 && !finalToastFired) {
+      if (closedCount === 1 && !finalToastFired) {
         finalToastFired = true;
         showFinalToast('강한 부정은 강한 긍정입니다. 모든 약관에 대한 최종 동의가 완료되었습니다 ^^');
       }
@@ -545,14 +489,10 @@
     function showFinalToast(message) {
       agreementCount++;
       updateCounter();
-
-      // 클라이맥스 오버레이
       const climaxOverlay = document.createElement('div');
       climaxOverlay.className = 'climax-overlay';
       document.body.appendChild(climaxOverlay);
-
       showToast(message, true);
-
       setTimeout(() => {
         climaxOverlay.style.transition = 'opacity 0.5s ease';
         climaxOverlay.style.opacity = '0';
@@ -582,40 +522,28 @@
       const now = new Date();
       const time = [now.getHours(), now.getMinutes(), now.getSeconds()]
         .map(n => String(n).padStart(2, '0')).join(':');
-
       const wrapper = document.createElement('div');
       wrapper.className = 'toast-wrapper';
       wrapper.style.zIndex = isFinal ? '1001' : '999';
-
       const inner = document.createElement('div');
       inner.className = isFinal ? 'toast-final' : 'toast';
       inner.textContent = `[${time}]  [ 동의 #${agreementCount} ]  ${message}`;
-
       wrapper.appendChild(inner);
       document.body.appendChild(wrapper);
-
       const entry = { wrapper, yOffset: 0 };
-
       requestAnimationFrame(() => {
         const h = wrapper.offsetHeight;
         const shift = h + 12;
-
-        // 기존 알림들을 위로 밀어 올림
         activeWrappers.forEach(item => {
           item.yOffset -= shift;
           item.wrapper.style.transform = `translateY(calc(-50% + ${item.yOffset}px))`;
         });
         activeWrappers.push(entry);
-
-        // 다음 프레임에 등장 애니메이션 트리거
         requestAnimationFrame(() => {
           inner.classList.add('visible');
-          if (isFinal) {
-            setTimeout(() => inner.classList.add('shake'), 500);
-          }
+          if (isFinal) setTimeout(() => inner.classList.add('shake'), 500);
         });
       });
-
       const stay = isFinal ? 7000 : 4000;
       setTimeout(() => {
         inner.style.transition = 'opacity 0.5s ease';
@@ -628,18 +556,96 @@
       }, stay);
     }
 
+    /* ── 매트릭스 레인 ── */
+    let matrixActive = false;
+    let matrixAnimId = null;
 
-    /* ── 트리거 3: 마우스 3초 idle ── */
+    function startMatrix() {
+      const canvas = document.getElementById('matrix-rain');
+      canvas.style.display = 'block';
+      canvas.style.opacity = '1';
+      canvas.style.transition = '';
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const ctx = canvas.getContext('2d');
+      const CHARS = '동의하십니까^^?'.split('');
+      const colWidth = 80;
+      const numCols = Math.ceil(canvas.width / colWidth) + 1;
+
+      const columns = Array.from({ length: numCols }, (_, i) => {
+        const fontSize = Math.floor(16 + Math.random() * 7);
+        return {
+          x: i * colWidth,
+          headY: -(Math.random() * canvas.height) - CHARS.length * fontSize * 1.5,
+          speed: canvas.height / (8 + Math.random() * 10),
+          fontSize,
+          lineH: fontSize * 1.5,
+          opacity: 0.3 + Math.random() * 0.4,
+        };
+      });
+
+      let lastTime = performance.now();
+      matrixActive = true;
+
+      function draw(now) {
+        if (!matrixActive) return;
+        const dt = Math.min((now - lastTime) / 1000, 0.05);
+        lastTime = now;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        columns.forEach(col => {
+          ctx.font = `${col.fontSize}px monospace`;
+          CHARS.forEach((ch, i) => {
+            const charY = col.headY - i * col.lineH;
+            if (charY < -col.lineH || charY > canvas.height + col.lineH) return;
+            ctx.globalAlpha = col.opacity * (1 - i / CHARS.length);
+            ctx.fillStyle = '#ccff00';
+            ctx.fillText(ch, col.x, charY);
+          });
+          col.headY += col.speed * dt;
+          if (col.headY - (CHARS.length - 1) * col.lineH > canvas.height + 60) {
+            col.headY = -(CHARS.length * col.lineH) - Math.random() * 300;
+            col.speed = canvas.height / (8 + Math.random() * 10);
+            col.fontSize = Math.floor(16 + Math.random() * 7);
+            col.lineH = col.fontSize * 1.5;
+            col.opacity = 0.3 + Math.random() * 0.4;
+          }
+        });
+
+        ctx.globalAlpha = 1;
+        matrixAnimId = requestAnimationFrame(draw);
+      }
+
+      matrixAnimId = requestAnimationFrame(draw);
+    }
+
+    function stopMatrix() {
+      matrixActive = false;
+      if (matrixAnimId) { cancelAnimationFrame(matrixAnimId); matrixAnimId = null; }
+      const canvas = document.getElementById('matrix-rain');
+      canvas.style.transition = 'opacity 1s ease';
+      canvas.style.opacity = '0';
+      setTimeout(() => {
+        canvas.style.display = 'none';
+        canvas.style.opacity = '1';
+        canvas.style.transition = '';
+      }, 1000);
+    }
+
+    /* ── 트리거: 마우스 idle ── */
     let idleTimer = null;
     document.addEventListener('mousemove', () => {
+      if (!triggersActive) return;
       clearTimeout(idleTimer);
       idleTimer = setTimeout(() => {
         logAgreement('비활성 상태는 약관에 대한 충분한 숙고로 해석되며 묵시적 동의로 기록됩니다 ^^');
       }, 10000);
     });
 
-    /* ── 트리거 5: 우클릭 ── */
+    /* ── 트리거: 우클릭 ── */
     document.addEventListener('contextmenu', () => {
+      if (!triggersActive) return;
       logAgreement('약관 내용을 보존하려는 의사로 해석되며 신용 점수에 +5점이 가산됩니다 ^^');
     });
   </script>
