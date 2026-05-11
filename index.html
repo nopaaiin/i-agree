@@ -570,7 +570,7 @@
 
       const ctx = canvas.getContext('2d');
       const CHARS = '동의하십니까^^?'.split('');
-      const colWidth = 80;
+      const colWidth = 45;
       const numCols = Math.ceil(canvas.width / colWidth) + 1;
 
       const columns = Array.from({ length: numCols }, (_, i) => {
@@ -581,7 +581,7 @@
           speed: canvas.height / (8 + Math.random() * 10),
           fontSize,
           lineH: fontSize * 1.5,
-          opacity: 0.3 + Math.random() * 0.4,
+          opacity: 0.7 + Math.random() * 0.3,
         };
       });
 
@@ -596,20 +596,23 @@
 
         columns.forEach(col => {
           ctx.font = `${col.fontSize}px monospace`;
+          ctx.shadowColor = 'rgba(204, 255, 0, 0.6)';
+          ctx.shadowBlur = 6;
           CHARS.forEach((ch, i) => {
-            const charY = col.headY - i * col.lineH;
+            const charY = col.headY + i * col.lineH;
             if (charY < -col.lineH || charY > canvas.height + col.lineH) return;
             ctx.globalAlpha = col.opacity * (1 - i / CHARS.length);
             ctx.fillStyle = '#ccff00';
             ctx.fillText(ch, col.x, charY);
           });
+          ctx.shadowBlur = 0;
           col.headY += col.speed * dt;
-          if (col.headY - (CHARS.length - 1) * col.lineH > canvas.height + 60) {
+          if (col.headY > canvas.height + 60) {
             col.headY = -(CHARS.length * col.lineH) - Math.random() * 300;
             col.speed = canvas.height / (8 + Math.random() * 10);
             col.fontSize = Math.floor(16 + Math.random() * 7);
             col.lineH = col.fontSize * 1.5;
-            col.opacity = 0.3 + Math.random() * 0.4;
+            col.opacity = 0.7 + Math.random() * 0.3;
           }
         });
 
